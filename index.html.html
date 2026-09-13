@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math-Quest | Misión Multiplicación</title>
+<style>
+:root{--bg:#eef6fb;--card:#fff;--ink:#18324a;--accent:#2d6a8a;--soft:#dcecf5;--ok:#2e7d5b;--bad:#a94b4b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eaf4fa,#f8fbfd);color:var(--ink)}
+header{background:var(--accent);color:white;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:22px;margin:0}
+.progress{font-weight:bold}
+main{max-width:900px;margin:30px auto;padding:0 18px}
+.card{background:var(--card);border-radius:18px;padding:28px;box-shadow:0 8px 25px rgba(30,70,100,.12);min-height:480px}
+h2{margin-top:0;font-size:30px}
+h3{font-size:22px}
+p,li{font-size:18px;line-height:1.55}
+.mission{background:var(--soft);padding:18px;border-radius:14px;margin:18px 0}
+.visual{font-size:28px;letter-spacing:6px;text-align:center;padding:18px}
+button{border:0;border-radius:12px;padding:13px 20px;margin:7px;font-size:17px;cursor:pointer;background:var(--accent);color:white}
+button.secondary{background:#708090}
+button.option{display:block;width:100%;text-align:left;background:#f3f7fa;color:var(--ink);border:2px solid #c7dbe7}
+button.option:hover{background:#e7f2f8}
+button:disabled{opacity:.55;cursor:not-allowed}
+.feedback{margin-top:18px;padding:15px;border-radius:12px;font-weight:bold;min-height:28px}
+.feedback.ok{background:#e5f4ec;color:var(--ok)}
+.feedback.bad{background:#fae9e9;color:var(--bad)}
+.score{font-size:20px;font-weight:bold}
+input{font-size:20px;padding:11px;border:2px solid #b9cfdb;border-radius:10px;width:180px}
+.tag{display:inline-block;padding:6px 10px;border-radius:20px;background:#e7f2f8;margin:3px;font-size:14px}
+.calm{float:right;background:#536d7c}
+footer{max-width:900px;margin:16px auto 35px;padding:0 18px;text-align:center;color:#5b7180}
+.small{font-size:14px;color:#617684}
+@media(max-width:650px){h2{font-size:25px}.card{padding:20px}header{display:block}.progress{margin-top:8px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧭 MATH-QUEST · Misión Multiplicación</h1>
+  <div class="progress">⭐ Puntos: <span id="score">0</span> · Pantalla <span id="screen">1</span>/8</div>
+</header>
+<main>
+<section class="card" id="app"></section>
+</main>
+<footer>
+  Recurso Educativo Digital elaborado para el EVA Math-Quest · Grado sexto<br>
+  <span class="small">Diseño: microaprendizaje, gamificación, DUA, retroalimentación inmediata y reflexión metacognitiva.</span>
+</footer>
+<script>
+let current=1, score=0, answered=false;
+const app=document.getElementById('app');
+const screens=[
+()=>`<h2>🚀 ¡Bienvenido, explorador matemático!</h2>
+<p>En esta misión aprenderás a comprender y resolver multiplicaciones usando grupos, arreglos y estrategias de descomposición.</p>
+<div class="mission"><strong>Tu reto:</strong> superar 3 desafíos de práctica y una misión de la vida real.</div>
+<div><span class="tag">Micro-sesión</span><span class="tag">Retroalimentación</span><span class="tag">Gamificación</span><span class="tag">DUA</span></div>
+<p><strong>Tiempo estimado:</strong> 7 minutos.</p>
+<button onclick="next()">🚀 Comenzar misión</button>`,
+()=>`<h2>🔎 Reto inicial</h2>
+<p>Si tenemos <strong>4 grupos de 3 elementos</strong>, ¿qué multiplicación representa la situación?</p>
+<div class="visual">●●● &nbsp; ●●● &nbsp; ●●● &nbsp; ●●●</div>
+<div id="options">
+<button class="option" onclick="answer(this,false,'Pista: cuenta primero cuántos grupos hay y luego cuántos elementos tiene cada grupo.')">A. 4 × 3 = 12</button>
+<button class="option" onclick="answer(this,true,'¡Muy bien! 4 grupos de 3 forman 12. También podemos escribir 3 + 3 + 3 + 3 = 12.')">B. 4 × 3 = 12</button>
+<button class="option" onclick="answer(this,false,'Observa nuevamente los grupos: hay cuatro grupos y cada uno tiene tres elementos.')">C. 3 × 3 = 9</button>
+<button class="option" onclick="answer(this,false,'Pista: no hay cuatro elementos en cada grupo.')">D. 4 × 4 = 16</button>
+</div><div id="feedback" class="feedback"></div>`,
+()=>`<h2>🧩 Comprendemos</h2>
+<p><strong>Multiplicar es formar grupos iguales.</strong></p>
+<div class="mission">
+<p>Por ejemplo, <strong>4 × 3</strong> significa cuatro grupos de tres:</p>
+<div class="visual">●●● &nbsp; ●●● &nbsp; ●●● &nbsp; ●●●</div>
+<p style="text-align:center"><strong>3 + 3 + 3 + 3 = 12</strong></p>
+</div>
+<p>Ahora pasaremos de la representación visual al número.</p>
+<button onclick="next()">➡️ Ver ejemplo</button>`,
+()=>`<h2>👀 Ejemplo guiado</h2>
+<p>Resolvamos <strong>4 × 12</strong>.</p>
+<div class="mission">
+<p>Podemos descomponer 12 en <strong>10 + 2</strong>:</p>
+<p style="text-align:center;font-size:22px"><strong>4 × 12 = 4 × (10 + 2)</strong></p>
+<p style="text-align:center"><strong>(4 × 10) + (4 × 2) = 40 + 8 = 48</strong></p>
+</div>
+<p>⭐ Estrategia: <strong>descomponer</strong> los números puede facilitar la multiplicación.</p>
+<button onclick="next()">➡️ Practicar</button>`,
+()=>`<h2>🎯 Practicamos</h2>
+<p>Resuelve estos tres retos. Cada respuesta correcta vale <strong>10 puntos</strong>.</p>
+<div class="mission">
+<p><strong>Reto 1:</strong> 3 × 12 = ?</p>
+<div id="q1">
+<button class="option" onclick="q(this,36,24)">24</button>
+<button class="option" onclick="q(this,36,36)">36</button>
+<button class="option" onclick="q(this,36,42)">42</button>
+<button class="option" onclick="q(this,36,32)">32</button>
+</div>
+<div id="qfeedback" class="feedback"></div>
+</div>
+<button id="continue5" style="display:none" onclick="next()">➡️ Siguiente</button>`,
+()=>`<h2>🏆 Reto de misión</h2>
+<p>Una canoa transporta <strong>12 paquetes</strong> en cada recorrido. Si realiza <strong>4 recorridos</strong>, ¿cuántos paquetes transportará en total?</p>
+<div class="mission"><p style="text-align:center;font-size:24px"><strong>12 × 4 = ?</strong></p></div>
+<button class="option" onclick="answer(this,false,'Pista: suma 12 cuatro veces: 12 + 12 + 12 + 12.')">A. 36</button>
+<button class="option" onclick="answer(this,true,'¡Misión cumplida! 12 + 12 + 12 + 12 = 48 paquetes.')">B. 48</button>
+<button class="option" onclick="answer(this,false,'Vuelve a representar cuatro grupos de 12.')">C. 52</button>
+<button class="option" onclick="answer(this,false,'Pista: son cuatro grupos iguales de 12.')">D. 44</button>
+<div id="feedback" class="feedback"></div>`,
+()=>`<h2>🤔 Diario metacognitivo</h2>
+<p>¿Cómo resolviste el reto de multiplicación?</p>
+<div id="meta">
+<button class="option" onclick="meta(this)">🔢 Usé directamente el algoritmo.</button>
+<button class="option" onclick="meta(this)">🧩 Descompuse los números.</button>
+<button class="option" onclick="meta(this)">👀 Utilicé la representación visual.</button>
+<button class="option" onclick="meta(this)">💡 Necesité una pista.</button>
+</div>
+<div id="metafeedback" class="feedback"></div>
+<button id="finish7" style="display:none" onclick="next()">➡️ Ver resultado</button>`,
+()=>`<h2>🎉 ¡Misión completada!</h2>
+<div class="mission">
+<p style="font-size:25px;text-align:center">🏅 <strong>Insignia: Explorador de la Multiplicación</strong></p>
+<p style="text-align:center">Tu puntuación: <strong>${score} puntos</strong></p>
+</div>
+<p>Has practicado diferentes maneras de comprender y resolver una multiplicación. Recuerda: <strong>equivocarse también hace parte del aprendizaje</strong>.</p>
+<p><strong>¿Qué sigue?</strong> Continúa hacia la siguiente misión de Math-Quest.</p>
+<button onclick="location.reload()">🔄 Reiniciar recurso</button>`
+];
+function render(){
+ document.getElementById('screen').textContent=current;
+ app.innerHTML=screens[current-1]();
+ answered=false;
+}
+function next(){if(current<8){current++;render();}}
+function answer(btn,correct,msg){
+ if(answered)return; answered=true;
+ const f=document.getElementById('feedback');
+ f.textContent=msg; f.className='feedback '+(correct?'ok':'bad');
+ if(correct){score+=10;document.getElementById('score').textContent=score;}
+ document.querySelectorAll('.option').forEach(b=>b.disabled=true);
+ if(current===2 || current===6){
+   const b=document.createElement('button'); b.textContent='➡️ Continuar'; b.onclick=next; app.appendChild(b);
+ }
+}
+function q(btn,expected,value){
+ if(answered)return; answered=true;
+ const f=document.getElementById('qfeedback');
+ if(value===expected){score+=10;document.getElementById('score').textContent=score;f.textContent='✅ ¡Correcto! 3 × 12 = 36.';f.className='feedback ok';}
+ else{f.textContent='💡 Pista: 12 + 12 + 12 = 36. Puedes volver a intentarlo en la siguiente práctica.';f.className='feedback bad';}
+ document.querySelectorAll('#q1 .option').forEach(b=>b.disabled=true);
+ document.getElementById('continue5').style.display='inline-block';
+}
+function meta(btn){
+ document.querySelectorAll('#meta .option').forEach(b=>b.disabled=true);
+ document.getElementById('metafeedback').textContent='💭 Excelente. Reconocer la estrategia utilizada ayuda a aprender de manera consciente.';
+ document.getElementById('metafeedback').className='feedback ok';
+ document.getElementById('finish7').style.display='inline-block';
+}
+render();
+</script>
+</body>
+</html>
